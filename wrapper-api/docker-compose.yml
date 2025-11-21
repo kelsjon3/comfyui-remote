@@ -1,0 +1,13 @@
+version: '3.8'
+
+services:
+  wrapper-api:
+    build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+    environment:
+      # TODO: Update with actual ComfyUI URL
+      - COMFYUI_BASE_URL=http://host.docker.internal:8188
+      - WORKFLOW_DIR=/app/workflows
