@@ -1,7 +1,9 @@
 package com.example.comfyuiremote.data.model
 
+import com.google.gson.annotations.SerializedName
+
 data class Workflow(
-    val id: String,
+    @SerializedName("file_name") val fileName: String,
     val name: String,
-    val description: String
+    @SerializedName("last_modified") val lastModified: String
 )

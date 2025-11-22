@@ -6,4 +6,5 @@ pydantic-settings==2.1.0
 httpx==0.26.0
 pytest==7.4.4
 pytest-asyncio==0.23.3
+pyyaml==0.23.3
 respx==0.20.2

@@ -49,7 +49,7 @@ fun AppNavigation(viewModel: WorkflowViewModel) {
         composable("workflow_detail/{workflowId}") { backStackEntry ->
             val workflowId = backStackEntry.arguments?.getString("workflowId") ?: return@composable
             WorkflowDetailScreen(
-                workflowId = workflowId,
+                workflowName = workflowId,
                 viewModel = viewModel
             )
         }

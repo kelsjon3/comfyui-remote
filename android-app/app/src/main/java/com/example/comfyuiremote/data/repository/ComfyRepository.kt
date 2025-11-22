@@ -1,9 +1,10 @@
 package com.example.comfyuiremote.data.repository
 
 import com.example.comfyuiremote.data.api.ComfyApiService
-import com.example.comfyuiremote.data.model.JobStartResponse
-import com.example.comfyuiremote.data.model.JobStatus
+import com.example.comfyuiremote.data.model.JobResponse
+import com.example.comfyuiremote.data.model.RunWorkflowRequest
 import com.example.comfyuiremote.data.model.Workflow
+import com.example.comfyuiremote.data.model.WorkflowIntrospection
 
 class ComfyRepository(private val apiService: ComfyApiService) {
 
@@ -15,25 +16,25 @@ class ComfyRepository(private val apiService: ComfyApiService) {
         }
     }
 
-    suspend fun startJob(workflowId: String): Result<JobStartResponse> {
+    suspend fun introspectWorkflow(name: String): Result<WorkflowIntrospection> {
         return try {
-            Result.success(apiService.startJob(workflowId))
+            Result.success(apiService.introspectWorkflow(name))
         } catch (e: Exception) {
             Result.failure(e)
         }
     }
 
-    suspend fun getJobStatus(jobId: String): Result<JobStatus> {
+    suspend fun runWorkflow(request: RunWorkflowRequest): Result<JobResponse> {
         return try {
-            Result.success(apiService.getJobStatus(jobId))
+            Result.success(apiService.runWorkflow(request))
         } catch (e: Exception) {
             Result.failure(e)
         }
     }
-    
-    suspend fun getJobImages(jobId: String): Result<List<String>> {
+
+    suspend fun getHistory(): Result<List<JobResponse>> {
         return try {
-            Result.success(apiService.getJobImages(jobId))
+            Result.success(apiService.getHistory())
         } catch (e: Exception) {
             Result.failure(e)
         }

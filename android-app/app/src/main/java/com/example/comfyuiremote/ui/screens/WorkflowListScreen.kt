@@ -54,7 +54,9 @@ fun WorkflowListScreen(
     } else {
         LazyColumn {
             items(workflows) { workflow ->
-                WorkflowItem(workflow = workflow, onClick = { onWorkflowClick(workflow.id) })
+                WorkflowItem(workflow) {
+                    onWorkflowClick(workflow.fileName)
+                }
             }
         }
     }
@@ -69,11 +71,12 @@ fun WorkflowItem(
         modifier = Modifier
             .fillMaxWidth()
             .padding(8.dp)
-            .clickable(onClick = onClick)
+            .clickable { onClick() }
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(text = workflow.name, style = MaterialTheme.typography.titleMedium)
-            Text(text = workflow.description, style = MaterialTheme.typography.bodyMedium)
+            // Text(text = workflow.description, style = MaterialTheme.typography.bodyMedium) // Description removed from model
+            Text(text = workflow.fileName, style = MaterialTheme.typography.bodySmall)
         }
     }
 }
