@@ -47,10 +47,12 @@ fun DynamicInputField(
         val isCheckpointInput = input.name.contains("ckpt", ignoreCase = true) || 
                                 input.name.contains("checkpoint", ignoreCase = true)
         
-        // Check if this is a LoRA input (but not weight/strength)
+        // Check if this is a LoRA input (but not weight/strength/header/widget)
         val isLoraInput = input.name.contains("lora", ignoreCase = true) && 
                          !input.name.contains("weight", ignoreCase = true) &&
-                         !input.name.contains("strength", ignoreCase = true)
+                         !input.name.contains("strength", ignoreCase = true) &&
+                         !input.name.contains("header", ignoreCase = true) &&
+                         !input.name.contains("widget", ignoreCase = true)
 
         when {
             isCheckpointInput && checkpoints.isNotEmpty() -> {
@@ -95,15 +97,16 @@ fun DynamicInputField(
                 // Dropdown for LoRAs
                 var expanded by remember { mutableStateOf(false) }
                 
-                // Extract just the filename from the value (in case it's a complex string)
+                // Extract just the filename from the value and clean up backslashes
                 val rawValue = value?.toString() ?: ""
                 val cleanValue = if (rawValue.contains("lora=")) {
                     // Extract lora filename from JSON-like string
                     rawValue.substringAfter("lora=").substringBefore(",").trim()
                 } else {
                     rawValue
-                }
-                val currentValue = cleanValue.ifEmpty { loras.firstOrNull() ?: "" }
+                }.replace("\\", "/")  // Replace backslashes with forward slashes
+                
+                val currentValue = cleanValue.ifEmpty { loras.firstOrNull()?.replace("\\", "/") ?: "" }
 
                 Box(modifier = Modifier.fillMaxWidth()) {
                     OutlinedTextField(
@@ -128,7 +131,7 @@ fun DynamicInputField(
                     ) {
                         loras.forEach { lora ->
                             androidx.compose.material3.DropdownMenuItem(
-                                text = { Text(lora) },
+                                text = { Text(lora.replace("\\", "/")) },
                                 onClick = {
                                     onValueChange(lora)
                                     expanded = false
