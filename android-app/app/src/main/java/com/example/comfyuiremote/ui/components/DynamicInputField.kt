@@ -146,6 +146,10 @@ fun DynamicInputField(
                                                 @Suppress("UNCHECKED_CAST")
                                                 val newMap = (value as Map<String, Any>).toMutableMap()
                                                 newMap["lora"] = lora
+                                                // Auto-enable if 'on' key exists
+                                                if (newMap.containsKey("on")) {
+                                                    newMap["on"] = true
+                                                }
                                                 onValueChange(newMap)
                                             } catch (e: Exception) {
                                                 onValueChange(lora)
@@ -168,6 +172,10 @@ fun DynamicInputField(
                                     @Suppress("UNCHECKED_CAST")
                                     val newMap = (value as Map<String, Any>).toMutableMap()
                                     newMap["lora"] = "None"
+                                    // Auto-disable if 'on' key exists
+                                    if (newMap.containsKey("on")) {
+                                        newMap["on"] = false
+                                    }
                                     onValueChange(newMap)
                                 } catch (e: Exception) {
                                     onValueChange("None")
