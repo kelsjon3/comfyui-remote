@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from .routers import workflows, jobs
+from routers import workflows, jobs
 
 # Initialize FastAPI app
 app = FastAPI(

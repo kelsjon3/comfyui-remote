@@ -6,60 +6,52 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.comfyuiremote.ui.screens.WorkflowDetailScreen
+import com.example.comfyuiremote.ui.screens.WorkflowListScreen
 import com.example.comfyuiremote.ui.theme.ComfyUIRemoteTheme
+import com.example.comfyuiremote.viewmodel.WorkflowViewModel
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
             ComfyUIRemoteTheme {
-                // A surface container using the 'background' color from the theme
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    AppNavigation()
+                    val viewModel: WorkflowViewModel = viewModel(factory = WorkflowViewModel.Factory)
+                    AppNavigation(viewModel)
                 }
             }
         }
     }
 }
 
-@Composable
-fun AppNavigation() {
+@androidx.compose.runtime.Composable
+fun AppNavigation(viewModel: WorkflowViewModel) {
     val navController = rememberNavController()
 
     NavHost(navController = navController, startDestination = "workflow_list") {
         composable("workflow_list") {
             WorkflowListScreen(
+                viewModel = viewModel,
                 onWorkflowClick = { workflowId ->
                     navController.navigate("workflow_detail/$workflowId")
                 }
             )
         }
         composable("workflow_detail/{workflowId}") { backStackEntry ->
-            val workflowId = backStackEntry.arguments?.getString("workflowId")
-            WorkflowDetailScreen(workflowId = workflowId)
+            val workflowId = backStackEntry.arguments?.getString("workflowId") ?: return@composable
+            WorkflowDetailScreen(
+                workflowId = workflowId,
+                viewModel = viewModel
+            )
         }
-        // TODO: Add other screens: Node Editor, Job Status, Image Gallery
     }
-}
-
-@Composable
-fun WorkflowListScreen(onWorkflowClick: (String) -> Unit) {
-    Text(text = "Workflow List Screen Placeholder")
-    // TODO: Display list of workflows
-}
-
-@Composable
-fun WorkflowDetailScreen(workflowId: String?) {
-    Text(text = "Workflow Detail Screen for $workflowId")
-    // TODO: Display workflow details and nodes
 }

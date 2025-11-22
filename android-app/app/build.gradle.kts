@@ -37,7 +37,7 @@ android {
         compose = true
     }
     composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.1"
+        kotlinCompilerExtensionVersion = "1.5.4"
     }
     packaging {
         resources {
@@ -58,6 +58,9 @@ dependencies {
     
     // Navigation
     implementation("androidx.navigation:navigation-compose:2.7.6")
+
+    // Coil
+    implementation("io.coil-kt:coil-compose:2.5.0")
     
     // Retrofit
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
