@@ -94,7 +94,7 @@ fun DynamicInputField(
                                             val newMap = (value as Map<String, Any>).toMutableMap()
                                             
                                             // Try to find the correct key to update
-                                            val keysToTry = listOf("ckpt_name", "checkpoint", "model", "name", "ckpt")
+                                            val keysToTry = listOf("ckpt_name", "checkpoint", "model", "name", "ckpt", "file", "filename")
                                             val keyToUpdate = keysToTry.firstOrNull { newMap.containsKey(it) } 
                                                 ?: keysToTry.first() // Fallback to first common key
                                                 
@@ -163,7 +163,12 @@ fun DynamicInputField(
                                             try {
                                                 @Suppress("UNCHECKED_CAST")
                                                 val newMap = (value as Map<String, Any>).toMutableMap()
-                                                newMap["lora"] = lora
+                                                
+                                                // Try to find correct key for LoRA
+                                                val keysToTry = listOf("lora", "lora_name", "model", "file", "filename")
+                                                val keyToUpdate = keysToTry.firstOrNull { newMap.containsKey(it) } ?: "lora"
+                                                
+                                                newMap[keyToUpdate] = lora
                                                 // Auto-enable if 'on' key exists
                                                 if (newMap.containsKey("on")) {
                                                     newMap["on"] = true

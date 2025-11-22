@@ -129,7 +129,7 @@ fun WorkflowDetailScreen(
                             val newMap = (defaultVal as Map<String, Any>).toMutableMap()
                             
                             // Try to find the correct key to update
-                            val keysToTry = listOf("ckpt_name", "checkpoint", "model", "name", "ckpt")
+                            val keysToTry = listOf("ckpt_name", "checkpoint", "model", "name", "ckpt", "file", "filename")
                             val keyToUpdate = keysToTry.firstOrNull { newMap.containsKey(it) } 
                                 ?: keysToTry.first()
                                 
