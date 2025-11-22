@@ -1,6 +1,8 @@
 package com.example.comfyuiremote.ui.screens
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -18,6 +20,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.Checkbox
@@ -173,7 +176,7 @@ fun WorkflowDetailScreen(
             Tab(
                 selected = selectedTab == 1,
                 onClick = { selectedTab = 1 },
-                text = { Text("Results") }
+                text = { Text("Queue") }
             )
         }
 
@@ -277,6 +280,9 @@ fun ResultsTab(
     history: List<com.example.comfyuiremote.data.model.JobResponse>,
     currentJob: com.example.comfyuiremote.data.model.JobResponse?
 ) {
+    // State for full-screen image viewer
+    var fullScreenImageUrl by remember { mutableStateOf<String?>(null) }
+
     // Combine current job and history, with current job first if it exists
     val allJobs = buildList {
         if (currentJob != null) {
@@ -285,27 +291,65 @@ fun ResultsTab(
         addAll(history.filter { it.jobId != currentJob?.jobId })
     }
 
-    if (allJobs.isEmpty()) {
-        Box(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text = "No results yet. Run a workflow to see results here.",
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
-    } else {
-        LazyVerticalGrid(
-            columns = GridCells.Fixed(2),
-            modifier = Modifier.fillMaxSize()
-        ) {
-            items(allJobs) { job ->
-                ResultImageCard(
-                    job = job,
-                    isCurrentJob = job.jobId == currentJob?.jobId
+    Box(modifier = Modifier.fillMaxSize()) {
+        if (allJobs.isEmpty()) {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "No results yet. Run a workflow to see results here.",
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
+            }
+        } else {
+            LazyVerticalGrid(
+                columns = GridCells.Fixed(2),
+                modifier = Modifier.fillMaxSize()
+            ) {
+                items(allJobs) { job ->
+                    ResultImageCard(
+                        job = job,
+                        isCurrentJob = job.jobId == currentJob?.jobId,
+                        onImageClick = { imageUrl ->
+                            fullScreenImageUrl = imageUrl
+                        }
+                    )
+                }
+            }
+        }
+
+        // Full-screen image viewer overlay
+        if (fullScreenImageUrl != null) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.background)
+                    .clickable { fullScreenImageUrl = null }
+            ) {
+                AsyncImage(
+                    model = fullScreenImageUrl,
+                    contentDescription = "Full screen image",
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .align(Alignment.Center),
+                    contentScale = androidx.compose.ui.layout.ContentScale.Fit
+                )
+
+                // Close button
+                androidx.compose.material3.IconButton(
+                    onClick = { fullScreenImageUrl = null },
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(16.dp)
+                ) {
+                    androidx.compose.material3.Icon(
+                        imageVector = androidx.compose.material.icons.Icons.Default.Close,
+                        contentDescription = "Close",
+                        tint = MaterialTheme.colorScheme.onBackground
+                    )
+                }
             }
         }
     }
@@ -314,7 +358,8 @@ fun ResultsTab(
 @Composable
 fun ResultImageCard(
     job: com.example.comfyuiremote.data.model.JobResponse,
-    isCurrentJob: Boolean
+    isCurrentJob: Boolean,
+    onImageClick: (String) -> Unit = {}
 ) {
     Card(
         modifier = Modifier
@@ -330,10 +375,13 @@ fun ResultImageCard(
                 "completed" -> {
                     // Show image if available
                     if (job.imageUrl != null) {
+                        val fullImageUrl = "http://10.0.2.2:8000${job.imageUrl}"
                         AsyncImage(
-                            model = "http://10.0.2.2:8000${job.imageUrl}",
+                            model = fullImageUrl,
                             contentDescription = "Generated Image",
-                            modifier = Modifier.fillMaxSize()
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .clickable { onImageClick(fullImageUrl) }
                         )
                     } else {
                         // Completed but no image
