@@ -88,10 +88,12 @@ fun DynamicInputField(
                                 text = { Text(checkpoint) },
                                 onClick = {
                                     // Handle complex inputs (Map) vs simple strings
-                                    if (value is Map<*, *>) {
+                                    // Use input.default to determine expected type, as current value might be "None" or null
+                                    val defaultVal = input.default
+                                    if (defaultVal is Map<*, *> || value is Map<*, *>) {
                                         try {
-                                            @Suppress("UNCHECKED_CAST")
-                                            val newMap = (value as Map<String, Any>).toMutableMap()
+                                            val baseMap = (value as? Map<String, Any>) ?: (defaultVal as? Map<String, Any>) ?: emptyMap()
+                                            val newMap = baseMap.toMutableMap()
                                             
                                             // Try to find the correct key to update
                                             val keysToTry = listOf("ckpt_name", "checkpoint", "model", "name", "ckpt", "file", "filename")
@@ -159,10 +161,12 @@ fun DynamicInputField(
                                     text = { Text(lora.replace("\\", "/")) },
                                     onClick = {
                                         // Handle complex inputs (Map) vs simple strings
-                                        if (value is Map<*, *>) {
+                                        // Use input.default to determine expected type
+                                        val defaultVal = input.default
+                                        if (defaultVal is Map<*, *> || value is Map<*, *>) {
                                             try {
-                                                @Suppress("UNCHECKED_CAST")
-                                                val newMap = (value as Map<String, Any>).toMutableMap()
+                                                val baseMap = (value as? Map<String, Any>) ?: (defaultVal as? Map<String, Any>) ?: emptyMap()
+                                                val newMap = baseMap.toMutableMap()
                                                 
                                                 // Try to find correct key for LoRA
                                                 val keysToTry = listOf("lora", "lora_name", "model", "file", "filename")
@@ -190,11 +194,17 @@ fun DynamicInputField(
                     // Remove button
                     androidx.compose.material3.IconButton(
                         onClick = { 
-                            if (value is Map<*, *>) {
+                            val defaultVal = input.default
+                            if (defaultVal is Map<*, *> || value is Map<*, *>) {
                                 try {
-                                    @Suppress("UNCHECKED_CAST")
-                                    val newMap = (value as Map<String, Any>).toMutableMap()
-                                    newMap["lora"] = "None"
+                                    val baseMap = (value as? Map<String, Any>) ?: (defaultVal as? Map<String, Any>) ?: emptyMap()
+                                    val newMap = baseMap.toMutableMap()
+                                    
+                                    // Try to find correct key for LoRA
+                                    val keysToTry = listOf("lora", "lora_name", "model", "file", "filename")
+                                    val keyToUpdate = keysToTry.firstOrNull { newMap.containsKey(it) } ?: "lora"
+                                    
+                                    newMap[keyToUpdate] = "None"
                                     // Auto-disable if 'on' key exists
                                     if (newMap.containsKey("on")) {
                                         newMap["on"] = false
