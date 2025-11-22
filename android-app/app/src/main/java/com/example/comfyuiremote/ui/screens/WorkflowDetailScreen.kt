@@ -52,8 +52,7 @@ import com.example.comfyuiremote.viewmodel.WorkflowViewModel
 @Composable
 fun WorkflowDetailScreen(
     workflowName: String,
-    viewModel: WorkflowViewModel,
-    onWorkflowChange: (String) -> Unit
+    viewModel: WorkflowViewModel
 ) {
     val introspection by viewModel.introspection.collectAsState()
     val currentJob by viewModel.currentJob.collectAsState()
@@ -104,49 +103,12 @@ fun WorkflowDetailScreen(
             .fillMaxSize()
             .padding(16.dp)
     ) {
-        // Workflow selector dropdown
-        var workflowDropdownExpanded by remember { mutableStateOf(false) }
-        val workflows by viewModel.workflows.collectAsState()
-        
-        Box(modifier = Modifier.fillMaxWidth()) {
-            OutlinedTextField(
-                value = workflowName,
-                onValueChange = {},
-                readOnly = true,
-                label = { Text("Workflow") },
-                trailingIcon = {
-                    androidx.compose.material3.IconButton(onClick = { workflowDropdownExpanded = true }) {
-                        androidx.compose.material3.Icon(
-                            imageVector = androidx.compose.material.icons.Icons.Default.ArrowDropDown,
-                            contentDescription = "Select workflow"
-                        )
-                    }
-                },
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            androidx.compose.material3.DropdownMenu(
-                expanded = workflowDropdownExpanded,
-                onDismissRequest = { workflowDropdownExpanded = false },
-                modifier = Modifier.fillMaxWidth(0.9f)
-            ) {
-                workflows.forEach { workflow ->
-                    androidx.compose.material3.DropdownMenuItem(
-                        text = { 
-                            Column {
-                                Text(workflow.name, style = MaterialTheme.typography.bodyMedium)
-                                Text(workflow.fileName, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                            }
-                        },
-                        onClick = {
-                            // Navigate to the new workflow
-                            onWorkflowChange(workflow.fileName)
-                            workflowDropdownExpanded = false
-                        }
-                    )
-                }
-            }
-        }
+        // Workflow title
+        Text(
+            text = workflowName,
+            style = MaterialTheme.typography.headlineSmall,
+            modifier = Modifier.padding(bottom = 8.dp)
+        )
         
         Spacer(modifier = Modifier.height(8.dp))
 

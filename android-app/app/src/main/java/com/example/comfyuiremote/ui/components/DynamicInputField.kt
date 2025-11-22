@@ -94,7 +94,16 @@ fun DynamicInputField(
             isLoraInput && loras.isNotEmpty() -> {
                 // Dropdown for LoRAs
                 var expanded by remember { mutableStateOf(false) }
-                val currentValue = value?.toString() ?: loras.firstOrNull() ?: ""
+                
+                // Extract just the filename from the value (in case it's a complex string)
+                val rawValue = value?.toString() ?: ""
+                val cleanValue = if (rawValue.contains("lora=")) {
+                    // Extract lora filename from JSON-like string
+                    rawValue.substringAfter("lora=").substringBefore(",").trim()
+                } else {
+                    rawValue
+                }
+                val currentValue = cleanValue.ifEmpty { loras.firstOrNull() ?: "" }
 
                 Box(modifier = Modifier.fillMaxWidth()) {
                     OutlinedTextField(

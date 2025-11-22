@@ -50,12 +50,7 @@ fun AppNavigation(viewModel: WorkflowViewModel) {
             val workflowId = backStackEntry.arguments?.getString("workflowId") ?: return@composable
             WorkflowDetailScreen(
                 workflowName = workflowId,
-                viewModel = viewModel,
-                onWorkflowChange = { newWorkflowName ->
-                    navController.navigate("workflow_detail/$newWorkflowName") {
-                        popUpTo("workflow_detail/$workflowId") { inclusive = true }
-                    }
-                }
+                viewModel = viewModel
             )
         }
     }
