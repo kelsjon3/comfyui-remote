@@ -93,6 +93,8 @@ async def run_workflow(request: RunWorkflowRequest, background_tasks: Background
 
     # 5. Submit to ComfyUI
     try:
+        import json
+        print(f"Submitting workflow to ComfyUI: {json.dumps(workflow_data, indent=2)}")
         prompt_id = await comfy_api.queue_prompt(workflow_data)
     except Exception as e:
         import traceback

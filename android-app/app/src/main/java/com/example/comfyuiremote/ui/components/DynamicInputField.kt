@@ -87,7 +87,25 @@ fun DynamicInputField(
                             androidx.compose.material3.DropdownMenuItem(
                                 text = { Text(checkpoint) },
                                 onClick = {
-                                    onValueChange(checkpoint)
+                                    // Handle complex inputs (Map) vs simple strings
+                                    if (value is Map<*, *>) {
+                                        try {
+                                            @Suppress("UNCHECKED_CAST")
+                                            val newMap = (value as Map<String, Any>).toMutableMap()
+                                            
+                                            // Try to find the correct key to update
+                                            val keysToTry = listOf("ckpt_name", "checkpoint", "model", "name", "ckpt")
+                                            val keyToUpdate = keysToTry.firstOrNull { newMap.containsKey(it) } 
+                                                ?: keysToTry.first() // Fallback to first common key
+                                                
+                                            newMap[keyToUpdate] = checkpoint
+                                            onValueChange(newMap)
+                                        } catch (e: Exception) {
+                                            onValueChange(checkpoint)
+                                        }
+                                    } else {
+                                        onValueChange(checkpoint)
+                                    }
                                     expanded = false
                                 }
                             )

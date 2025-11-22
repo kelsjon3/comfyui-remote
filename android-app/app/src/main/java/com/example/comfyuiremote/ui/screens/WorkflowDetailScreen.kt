@@ -120,7 +120,27 @@ fun WorkflowDetailScreen(
                      input.name.contains("checkpoint", ignoreCase = true)) &&
                     checkpoints.isNotEmpty() &&
                     !inputValues.containsKey(key)) {
-                    inputValues[key] = checkpoints.first()
+                    
+                    // Check if the default value is a Map
+                    val defaultVal = input.default
+                    if (defaultVal is Map<*, *>) {
+                        try {
+                            @Suppress("UNCHECKED_CAST")
+                            val newMap = (defaultVal as Map<String, Any>).toMutableMap()
+                            
+                            // Try to find the correct key to update
+                            val keysToTry = listOf("ckpt_name", "checkpoint", "model", "name", "ckpt")
+                            val keyToUpdate = keysToTry.firstOrNull { newMap.containsKey(it) } 
+                                ?: keysToTry.first()
+                                
+                            newMap[keyToUpdate] = checkpoints.first()
+                            inputValues[key] = newMap
+                        } catch (e: Exception) {
+                            inputValues[key] = checkpoints.first()
+                        }
+                    } else {
+                        inputValues[key] = checkpoints.first()
+                    }
                 }
                 
                 // Initialize LoRA inputs
