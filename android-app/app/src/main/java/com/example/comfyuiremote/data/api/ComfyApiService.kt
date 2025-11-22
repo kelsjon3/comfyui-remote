@@ -2,6 +2,7 @@ package com.example.comfyuiremote.data.api
 
 import com.example.comfyuiremote.data.model.CheckpointsResponse
 import com.example.comfyuiremote.data.model.JobResponse
+import com.example.comfyuiremote.data.model.LorasResponse
 import com.example.comfyuiremote.data.model.RunWorkflowRequest
 import com.example.comfyuiremote.data.model.Workflow
 import com.example.comfyuiremote.data.model.WorkflowIntrospection
@@ -29,4 +30,7 @@ interface ComfyApiService {
     
     @GET("/checkpoints")
     suspend fun getCheckpoints(): CheckpointsResponse
+    
+    @GET("/loras")
+    suspend fun getLoras(): LorasResponse
 }

@@ -35,6 +35,9 @@ class WorkflowViewModel(private val repository: ComfyRepository) : ViewModel() {
     private val _checkpoints = MutableStateFlow<List<String>>(emptyList())
     val checkpoints: StateFlow<List<String>> = _checkpoints.asStateFlow()
 
+    private val _loras = MutableStateFlow<List<String>>(emptyList())
+    val loras: StateFlow<List<String>> = _loras.asStateFlow()
+
     private val _error = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = _error.asStateFlow()
 
@@ -42,6 +45,13 @@ class WorkflowViewModel(private val repository: ComfyRepository) : ViewModel() {
         viewModelScope.launch {
             val result = repository.getCheckpoints()
             result.onSuccess { _checkpoints.value = it }
+        }
+    }
+
+    fun loadLoras() {
+        viewModelScope.launch {
+            val result = repository.getLoras()
+            result.onSuccess { _loras.value = it }
         }
     }
 

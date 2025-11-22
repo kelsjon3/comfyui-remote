@@ -47,4 +47,12 @@ class ComfyRepository(private val apiService: ComfyApiService) {
             Result.failure(e)
         }
     }
+
+    suspend fun getLoras(): Result<List<String>> {
+        return try {
+            Result.success(apiService.getLoras().loras)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
 }

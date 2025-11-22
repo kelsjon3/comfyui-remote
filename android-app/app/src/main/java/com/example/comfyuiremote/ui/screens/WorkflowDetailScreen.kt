@@ -59,6 +59,7 @@ fun WorkflowDetailScreen(
     val currentJob by viewModel.currentJob.collectAsState()
     val history by viewModel.history.collectAsState()
     val checkpoints by viewModel.checkpoints.collectAsState()
+    val loras by viewModel.loras.collectAsState()
     val error by viewModel.error.collectAsState()
 
     // Local state for form inputs
@@ -76,6 +77,7 @@ fun WorkflowDetailScreen(
         viewModel.introspectWorkflow(workflowName)
         viewModel.loadHistory()
         viewModel.loadCheckpoints()
+        viewModel.loadLoras()
     }
 
     // Initialize defaults when introspection loads
@@ -201,7 +203,8 @@ fun WorkflowDetailScreen(
                 seedValue = seedValue,
                 onRandomizeSeedChange = { randomizeSeed = it },
                 onSeedValueChange = { seedValue = it },
-                checkpoints = checkpoints
+                checkpoints = checkpoints,
+                loras = loras
             )
             1 -> ResultsTab(
                 history = history,
@@ -220,7 +223,8 @@ fun InputsTab(
     seedValue: Long,
     onRandomizeSeedChange: (Boolean) -> Unit,
     onSeedValueChange: (Long) -> Unit,
-    checkpoints: List<String>
+    checkpoints: List<String>,
+    loras: List<String>
 ) {
     if (introspection == null) {
         CircularProgressIndicator(modifier = Modifier.padding(16.dp))
@@ -255,7 +259,8 @@ fun InputsTab(
                                         input = input.copy(name = "Seed Value", type = "int"),
                                         value = seedValue,
                                         onValueChange = { onSeedValueChange((it as? Int)?.toLong() ?: 0L) },
-                                        checkpoints = checkpoints
+                                        checkpoints = checkpoints,
+                                        loras = loras
                                     )
                                 }
                             } else {
@@ -264,7 +269,8 @@ fun InputsTab(
                                     input = input,
                                     value = inputValues[key],
                                     onValueChange = { inputValues[key] = it },
-                                    checkpoints = checkpoints
+                                    checkpoints = checkpoints,
+                                    loras = loras
                                 )
                             }
                         }

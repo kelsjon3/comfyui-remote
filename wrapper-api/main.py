@@ -189,6 +189,31 @@ async def get_checkpoints():
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to get checkpoints: {str(e)}")
 
+@app.get("/loras")
+async def get_loras():
+    """Get list of available LoRAs from ComfyUI."""
+    try:
+        object_info = await comfy_api.get_object_info()
+        
+        # Extract LoRA loaders
+        loras = []
+        for node_type, node_info in object_info.items():
+            if "LoraLoader" in node_type or "lora" in node_type.lower():
+                # Get the lora input configuration
+                if "input" in node_info and "required" in node_info["input"]:
+                    for input_name, input_config in node_info["input"]["required"].items():
+                        if "lora" in input_name.lower() and "weight" not in input_name.lower() and "strength" not in input_name.lower():
+                            if isinstance(input_config, list) and len(input_config) > 0:
+                                # First element is usually the list of available options
+                                if isinstance(input_config[0], list):
+                                    loras.extend(input_config[0])
+        
+        # Remove duplicates and sort
+        loras = sorted(list(set(loras)))
+        return {"loras": loras}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to get loras: {str(e)}")
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)

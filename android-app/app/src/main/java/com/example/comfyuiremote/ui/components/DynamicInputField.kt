@@ -33,7 +33,8 @@ fun DynamicInputField(
     input: WorkflowNodeInput,
     value: Any?,
     onValueChange: (Any) -> Unit,
-    checkpoints: List<String> = emptyList()
+    checkpoints: List<String> = emptyList(),
+    loras: List<String> = emptyList()
 ) {
     Column(modifier = Modifier.padding(vertical = 8.dp)) {
         Text(
@@ -45,6 +46,11 @@ fun DynamicInputField(
         // Check if this is a checkpoint input
         val isCheckpointInput = input.name.contains("ckpt", ignoreCase = true) || 
                                 input.name.contains("checkpoint", ignoreCase = true)
+        
+        // Check if this is a LoRA input (but not weight/strength)
+        val isLoraInput = input.name.contains("lora", ignoreCase = true) && 
+                         !input.name.contains("weight", ignoreCase = true) &&
+                         !input.name.contains("strength", ignoreCase = true)
 
         when {
             isCheckpointInput && checkpoints.isNotEmpty() -> {
@@ -78,6 +84,44 @@ fun DynamicInputField(
                                 text = { Text(checkpoint) },
                                 onClick = {
                                     onValueChange(checkpoint)
+                                    expanded = false
+                                }
+                            )
+                        }
+                    }
+                }
+            }
+            isLoraInput && loras.isNotEmpty() -> {
+                // Dropdown for LoRAs
+                var expanded by remember { mutableStateOf(false) }
+                val currentValue = value?.toString() ?: loras.firstOrNull() ?: ""
+
+                Box(modifier = Modifier.fillMaxWidth()) {
+                    OutlinedTextField(
+                        value = currentValue,
+                        onValueChange = {},
+                        readOnly = true,
+                        trailingIcon = {
+                            androidx.compose.material3.IconButton(onClick = { expanded = true }) {
+                                androidx.compose.material3.Icon(
+                                    imageVector = androidx.compose.material.icons.Icons.Default.ArrowDropDown,
+                                    contentDescription = "Select LoRA"
+                                )
+                            }
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+
+                    androidx.compose.material3.DropdownMenu(
+                        expanded = expanded,
+                        onDismissRequest = { expanded = false },
+                        modifier = Modifier.fillMaxWidth(0.9f)
+                    ) {
+                        loras.forEach { lora ->
+                            androidx.compose.material3.DropdownMenuItem(
+                                text = { Text(lora) },
+                                onClick = {
+                                    onValueChange(lora)
                                     expanded = false
                                 }
                             )
