@@ -16,11 +16,14 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
@@ -46,7 +49,8 @@ import com.example.comfyuiremote.viewmodel.WorkflowViewModel
 @Composable
 fun WorkflowDetailScreen(
     workflowName: String,
-    viewModel: WorkflowViewModel
+    viewModel: WorkflowViewModel,
+    onWorkflowChange: (String) -> Unit
 ) {
     val introspection by viewModel.introspection.collectAsState()
     val currentJob by viewModel.currentJob.collectAsState()
@@ -95,11 +99,49 @@ fun WorkflowDetailScreen(
             .fillMaxSize()
             .padding(16.dp)
     ) {
-        // Workflow title
-        Text(
-            text = workflowName,
-            style = MaterialTheme.typography.headlineSmall
-        )
+        // Workflow selector dropdown
+        var workflowDropdownExpanded by remember { mutableStateOf(false) }
+        val workflows by viewModel.workflows.collectAsState()
+        
+        Box(modifier = Modifier.fillMaxWidth()) {
+            OutlinedTextField(
+                value = workflowName,
+                onValueChange = {},
+                readOnly = true,
+                label = { Text("Workflow") },
+                trailingIcon = {
+                    androidx.compose.material3.IconButton(onClick = { workflowDropdownExpanded = true }) {
+                        androidx.compose.material3.Icon(
+                            imageVector = androidx.compose.material.icons.Icons.Default.ArrowDropDown,
+                            contentDescription = "Select workflow"
+                        )
+                    }
+                },
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            androidx.compose.material3.DropdownMenu(
+                expanded = workflowDropdownExpanded,
+                onDismissRequest = { workflowDropdownExpanded = false },
+                modifier = Modifier.fillMaxWidth(0.9f)
+            ) {
+                workflows.forEach { workflow ->
+                    androidx.compose.material3.DropdownMenuItem(
+                        text = { 
+                            Column {
+                                Text(workflow.name, style = MaterialTheme.typography.bodyMedium)
+                                Text(workflow.fileName, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            }
+                        },
+                        onClick = {
+                            // Navigate to the new workflow
+                            onWorkflowChange(workflow.fileName)
+                            workflowDropdownExpanded = false
+                        }
+                    )
+                }
+            }
+        }
         
         Spacer(modifier = Modifier.height(8.dp))
 
