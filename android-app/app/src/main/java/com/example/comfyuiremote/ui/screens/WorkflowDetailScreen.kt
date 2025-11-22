@@ -203,7 +203,13 @@ fun InputsTab(
                             expandedNodes[node.id] = !(expandedNodes[node.id] ?: false)
                         }
                     ) {
-                        node.inputs.forEach { input ->
+                        node.inputs
+                            .filter { input ->
+                                // Filter out header and widget fields
+                                !input.name.contains("header", ignoreCase = true) &&
+                                !input.name.contains("widget", ignoreCase = true)
+                            }
+                            .forEach { input ->
                             if (input.isSeed) {
                                 // Special handling for seed
                                 Row(
