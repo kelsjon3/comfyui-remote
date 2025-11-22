@@ -129,7 +129,27 @@ fun WorkflowDetailScreen(
                     !input.name.contains("strength", ignoreCase = true) &&
                     loras.isNotEmpty() &&
                     !inputValues.containsKey(key)) {
-                    inputValues[key] = loras.first()
+                    
+                    // Check if the default value is a Map (complex input like Power Lora Loader)
+                    val defaultVal = input.default
+                    if (defaultVal is Map<*, *>) {
+                        // It's a map! We need to preserve the structure and only update the 'lora' key
+                        try {
+                            @Suppress("UNCHECKED_CAST")
+                            val newMap = (defaultVal as Map<String, Any>).toMutableMap()
+                            // Only update if we have a valid lora list
+                            if (loras.isNotEmpty()) {
+                                newMap["lora"] = loras.first()
+                            }
+                            inputValues[key] = newMap
+                        } catch (e: Exception) {
+                            // Fallback if casting fails
+                            inputValues[key] = loras.first()
+                        }
+                    } else {
+                        // Simple string input
+                        inputValues[key] = loras.first()
+                    }
                 }
             }
         }

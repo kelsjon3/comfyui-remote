@@ -140,7 +140,19 @@ fun DynamicInputField(
                                 androidx.compose.material3.DropdownMenuItem(
                                     text = { Text(lora.replace("\\", "/")) },
                                     onClick = {
-                                        onValueChange(lora)
+                                        // Handle complex inputs (Map) vs simple strings
+                                        if (value is Map<*, *>) {
+                                            try {
+                                                @Suppress("UNCHECKED_CAST")
+                                                val newMap = (value as Map<String, Any>).toMutableMap()
+                                                newMap["lora"] = lora
+                                                onValueChange(newMap)
+                                            } catch (e: Exception) {
+                                                onValueChange(lora)
+                                            }
+                                        } else {
+                                            onValueChange(lora)
+                                        }
                                         expanded = false
                                     }
                                 )
@@ -150,7 +162,20 @@ fun DynamicInputField(
                     
                     // Remove button
                     androidx.compose.material3.IconButton(
-                        onClick = { onValueChange("None") }
+                        onClick = { 
+                            if (value is Map<*, *>) {
+                                try {
+                                    @Suppress("UNCHECKED_CAST")
+                                    val newMap = (value as Map<String, Any>).toMutableMap()
+                                    newMap["lora"] = "None"
+                                    onValueChange(newMap)
+                                } catch (e: Exception) {
+                                    onValueChange("None")
+                                }
+                            } else {
+                                onValueChange("None")
+                            }
+                        }
                     ) {
                         androidx.compose.material3.Icon(
                             imageVector = androidx.compose.material.icons.Icons.Default.Close,
