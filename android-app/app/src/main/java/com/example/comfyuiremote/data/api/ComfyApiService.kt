@@ -1,5 +1,6 @@
 package com.example.comfyuiremote.data.api
 
+import com.example.comfyuiremote.data.model.CheckpointsResponse
 import com.example.comfyuiremote.data.model.JobResponse
 import com.example.comfyuiremote.data.model.RunWorkflowRequest
 import com.example.comfyuiremote.data.model.Workflow
@@ -25,4 +26,7 @@ interface ComfyApiService {
 
     @GET("/history")
     suspend fun getHistory(): List<JobResponse>
+    
+    @GET("/checkpoints")
+    suspend fun getCheckpoints(): CheckpointsResponse
 }

@@ -164,6 +164,31 @@ async def proxy_image(filename: str, subfolder: str = "", type: str = "output"):
     except Exception as e:
         raise HTTPException(status_code=404, detail=str(e))
 
+@app.get("/checkpoints")
+async def get_checkpoints():
+    """Get list of available checkpoints from ComfyUI."""
+    try:
+        object_info = await comfy_api.get_object_info()
+        
+        # Extract checkpoint loaders
+        checkpoints = []
+        for node_type, node_info in object_info.items():
+            if "CheckpointLoader" in node_type or "checkpoint" in node_type.lower():
+                # Get the checkpoint input configuration
+                if "input" in node_info and "required" in node_info["input"]:
+                    for input_name, input_config in node_info["input"]["required"].items():
+                        if input_name == "ckpt_name" or "checkpoint" in input_name.lower():
+                            if isinstance(input_config, list) and len(input_config) > 0:
+                                # First element is usually the list of available options
+                                if isinstance(input_config[0], list):
+                                    checkpoints.extend(input_config[0])
+        
+        # Remove duplicates and sort
+        checkpoints = sorted(list(set(checkpoints)))
+        return {"checkpoints": checkpoints}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to get checkpoints: {str(e)}")
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)

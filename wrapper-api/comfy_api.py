@@ -50,4 +50,9 @@ class ComfyAPI:
         response = await self._request("GET", f"/view{params}")
         return response.content
 
+    async def get_object_info(self) -> Dict[str, Any]:
+        """Get information about all available nodes and their inputs from ComfyUI."""
+        response = await self._request("GET", "/object_info")
+        return response.json()
+
 comfy_api = ComfyAPI()

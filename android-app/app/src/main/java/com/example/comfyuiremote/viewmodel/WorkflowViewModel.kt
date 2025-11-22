@@ -32,8 +32,18 @@ class WorkflowViewModel(private val repository: ComfyRepository) : ViewModel() {
     private val _history = MutableStateFlow<List<JobResponse>>(emptyList())
     val history: StateFlow<List<JobResponse>> = _history.asStateFlow()
 
+    private val _checkpoints = MutableStateFlow<List<String>>(emptyList())
+    val checkpoints: StateFlow<List<String>> = _checkpoints.asStateFlow()
+
     private val _error = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = _error.asStateFlow()
+
+    fun loadCheckpoints() {
+        viewModelScope.launch {
+            val result = repository.getCheckpoints()
+            result.onSuccess { _checkpoints.value = it }
+        }
+    }
 
     fun loadWorkflows() {
         viewModelScope.launch {

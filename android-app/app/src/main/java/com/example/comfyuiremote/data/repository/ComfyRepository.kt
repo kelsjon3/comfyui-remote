@@ -39,4 +39,12 @@ class ComfyRepository(private val apiService: ComfyApiService) {
             Result.failure(e)
         }
     }
+
+    suspend fun getCheckpoints(): Result<List<String>> {
+        return try {
+            Result.success(apiService.getCheckpoints().checkpoints)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
 }

@@ -1,16 +1,27 @@
 package com.example.comfyuiremote.ui.components
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
@@ -21,7 +32,8 @@ import com.example.comfyuiremote.data.model.WorkflowNodeInput
 fun DynamicInputField(
     input: WorkflowNodeInput,
     value: Any?,
-    onValueChange: (Any) -> Unit
+    onValueChange: (Any) -> Unit,
+    checkpoints: List<String> = emptyList()
 ) {
     Column(modifier = Modifier.padding(vertical = 8.dp)) {
         Text(
@@ -30,8 +42,50 @@ fun DynamicInputField(
             modifier = Modifier.padding(bottom = 4.dp)
         )
 
-        when (input.type) {
-            "int", "float" -> {
+        // Check if this is a checkpoint input
+        val isCheckpointInput = input.name.contains("ckpt", ignoreCase = true) || 
+                                input.name.contains("checkpoint", ignoreCase = true)
+
+        when {
+            isCheckpointInput && checkpoints.isNotEmpty() -> {
+                // Dropdown for checkpoints
+                var expanded by remember { mutableStateOf(false) }
+                val currentValue = value?.toString() ?: checkpoints.firstOrNull() ?: ""
+
+                Box(modifier = Modifier.fillMaxWidth()) {
+                    OutlinedTextField(
+                        value = currentValue,
+                        onValueChange = {},
+                        readOnly = true,
+                        trailingIcon = {
+                            androidx.compose.material3.IconButton(onClick = { expanded = true }) {
+                                androidx.compose.material3.Icon(
+                                    imageVector = androidx.compose.material.icons.Icons.Default.ArrowDropDown,
+                                    contentDescription = "Select checkpoint"
+                                )
+                            }
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+
+                    androidx.compose.material3.DropdownMenu(
+                        expanded = expanded,
+                        onDismissRequest = { expanded = false },
+                        modifier = Modifier.fillMaxWidth(0.9f)
+                    ) {
+                        checkpoints.forEach { checkpoint ->
+                            androidx.compose.material3.DropdownMenuItem(
+                                text = { Text(checkpoint) },
+                                onClick = {
+                                    onValueChange(checkpoint)
+                                    expanded = false
+                                }
+                            )
+                        }
+                    }
+                }
+            }
+            input.type == "int" || input.type == "float" -> {
                 OutlinedTextField(
                     value = value?.toString() ?: "",
                     onValueChange = { newValue ->
@@ -45,7 +99,7 @@ fun DynamicInputField(
                     modifier = Modifier.fillMaxWidth()
                 )
             }
-            "bool" -> {
+            input.type == "bool" -> {
                 Switch(
                     checked = value as? Boolean ?: false,
                     onCheckedChange = { onValueChange(it) }

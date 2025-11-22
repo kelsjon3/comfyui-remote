@@ -1,5 +1,7 @@
 package com.example.comfyuiremote.ui.screens
 
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -19,6 +21,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
@@ -48,6 +51,7 @@ fun WorkflowDetailScreen(
     val introspection by viewModel.introspection.collectAsState()
     val currentJob by viewModel.currentJob.collectAsState()
     val history by viewModel.history.collectAsState()
+    val checkpoints by viewModel.checkpoints.collectAsState()
     val error by viewModel.error.collectAsState()
 
     // Local state for form inputs
@@ -64,6 +68,7 @@ fun WorkflowDetailScreen(
     LaunchedEffect(workflowName) {
         viewModel.introspectWorkflow(workflowName)
         viewModel.loadHistory()
+        viewModel.loadCheckpoints()
     }
 
     // Initialize defaults when introspection loads
@@ -150,7 +155,8 @@ fun WorkflowDetailScreen(
                 randomizeSeed = randomizeSeed,
                 seedValue = seedValue,
                 onRandomizeSeedChange = { randomizeSeed = it },
-                onSeedValueChange = { seedValue = it }
+                onSeedValueChange = { seedValue = it },
+                checkpoints = checkpoints
             )
             1 -> ResultsTab(
                 history = history,
@@ -168,7 +174,8 @@ fun InputsTab(
     randomizeSeed: Boolean,
     seedValue: Long,
     onRandomizeSeedChange: (Boolean) -> Unit,
-    onSeedValueChange: (Long) -> Unit
+    onSeedValueChange: (Long) -> Unit,
+    checkpoints: List<String>
 ) {
     if (introspection == null) {
         CircularProgressIndicator(modifier = Modifier.padding(16.dp))
@@ -202,7 +209,8 @@ fun InputsTab(
                                     DynamicInputField(
                                         input = input.copy(name = "Seed Value", type = "int"),
                                         value = seedValue,
-                                        onValueChange = { onSeedValueChange((it as? Int)?.toLong() ?: 0L) }
+                                        onValueChange = { onSeedValueChange((it as? Int)?.toLong() ?: 0L) },
+                                        checkpoints = checkpoints
                                     )
                                 }
                             } else {
@@ -210,7 +218,8 @@ fun InputsTab(
                                 DynamicInputField(
                                     input = input,
                                     value = inputValues[key],
-                                    onValueChange = { inputValues[key] = it }
+                                    onValueChange = { inputValues[key] = it },
+                                    checkpoints = checkpoints
                                 )
                             }
                         }
@@ -226,61 +235,187 @@ fun ResultsTab(
     history: List<com.example.comfyuiremote.data.model.JobResponse>,
     currentJob: com.example.comfyuiremote.data.model.JobResponse?
 ) {
-    LazyVerticalGrid(
-        columns = GridCells.Fixed(2),
-        modifier = Modifier.fillMaxSize()
-    ) {
-        // Show current job if it has an image
-        if (currentJob?.imageUrl != null) {
-            item {
+    // Combine current job and history, with current job first if it exists
+    val allJobs = buildList {
+        if (currentJob != null) {
+            add(currentJob)
+        }
+        addAll(history.filter { it.jobId != currentJob?.jobId })
+    }
+
+    if (allJobs.isEmpty()) {
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = "No results yet. Run a workflow to see results here.",
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    } else {
+        LazyVerticalGrid(
+            columns = GridCells.Fixed(2),
+            modifier = Modifier.fillMaxSize()
+        ) {
+            items(allJobs) { job ->
                 ResultImageCard(
-                    imageUrl = "http://10.0.2.2:8000${currentJob.imageUrl}",
-                    seed = currentJob.resolvedSeed,
-                    status = currentJob.status
+                    job = job,
+                    isCurrentJob = job.jobId == currentJob?.jobId
                 )
             }
-        }
-
-        // Show history
-        items(history.filter { it.imageUrl != null }) { job ->
-            ResultImageCard(
-                imageUrl = "http://10.0.2.2:8000${job.imageUrl}",
-                seed = job.resolvedSeed,
-                status = job.status
-            )
         }
     }
 }
 
 @Composable
 fun ResultImageCard(
-    imageUrl: String,
-    seed: Long,
-    status: String
+    job: com.example.comfyuiremote.data.model.JobResponse,
+    isCurrentJob: Boolean
 ) {
     Card(
         modifier = Modifier
             .padding(4.dp)
             .fillMaxWidth()
     ) {
-        Column {
-            AsyncImage(
-                model = imageUrl,
-                contentDescription = "Generated Image",
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(200.dp)
+        ) {
+            when (job.status) {
+                "completed" -> {
+                    // Show image if available
+                    if (job.imageUrl != null) {
+                        AsyncImage(
+                            model = "http://10.0.2.2:8000${job.imageUrl}",
+                            contentDescription = "Generated Image",
+                            modifier = Modifier.fillMaxSize()
+                        )
+                    } else {
+                        // Completed but no image
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Text(
+                                    text = "✓ Completed",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                                Text(
+                                    text = "No image available",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+                    }
+                }
+                "running" -> {
+                    // Show progress indicator for running job
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
+                        ) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.padding(16.dp)
+                            )
+                            Text(
+                                text = "Running...",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                            if (isCurrentJob) {
+                                Text(
+                                    text = "Current Job",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.secondary
+                                )
+                            }
+                        }
+                    }
+                }
+                "queued" -> {
+                    // Show placeholder for queued job
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
+                        ) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.padding(16.dp),
+                                color = MaterialTheme.colorScheme.secondary
+                            )
+                            Text(
+                                text = "Queued",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.secondary
+                            )
+                        }
+                    }
+                }
+                else -> {
+                    // Error or unknown status
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text(
+                                text = "⚠ ${job.status}",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.error
+                            )
+                        }
+                    }
+                }
+            }
+
+            // Status badge overlay
+            Surface(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .height(150.dp)
-            )
-            Column(modifier = Modifier.padding(8.dp)) {
+                    .align(Alignment.TopEnd)
+                    .padding(8.dp),
+                color = when (job.status) {
+                    "completed" -> MaterialTheme.colorScheme.primary
+                    "running" -> MaterialTheme.colorScheme.secondary
+                    "queued" -> MaterialTheme.colorScheme.tertiary
+                    else -> MaterialTheme.colorScheme.error
+                },
+                shape = MaterialTheme.shapes.small
+            ) {
                 Text(
-                    text = "Seed: $seed",
-                    style = MaterialTheme.typography.bodySmall
-                )
-                Text(
-                    text = "Status: $status",
-                    style = MaterialTheme.typography.bodySmall
+                    text = job.status.uppercase(),
+                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onPrimary
                 )
             }
         }
+
+        // Job details
+        Column(modifier = Modifier.padding(8.dp)) {
+            Text(
+                text = "Seed: ${job.resolvedSeed}",
+                style = MaterialTheme.typography.bodySmall
+            )
+            Text(
+                text = job.workflowName,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 1
+            )
+        }
     }
 }
+
