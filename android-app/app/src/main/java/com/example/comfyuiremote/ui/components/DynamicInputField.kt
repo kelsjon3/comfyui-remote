@@ -1,5 +1,6 @@
 package com.example.comfyuiremote.ui.components
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -8,6 +9,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -108,36 +110,53 @@ fun DynamicInputField(
                 
                 val currentValue = cleanValue.ifEmpty { loras.firstOrNull()?.replace("\\", "/") ?: "" }
 
-                Box(modifier = Modifier.fillMaxWidth()) {
-                    OutlinedTextField(
-                        value = currentValue,
-                        onValueChange = {},
-                        readOnly = true,
-                        trailingIcon = {
-                            androidx.compose.material3.IconButton(onClick = { expanded = true }) {
-                                androidx.compose.material3.Icon(
-                                    imageVector = androidx.compose.material.icons.Icons.Default.ArrowDropDown,
-                                    contentDescription = "Select LoRA"
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Box(modifier = Modifier.weight(1f)) {
+                        OutlinedTextField(
+                            value = currentValue,
+                            onValueChange = {},
+                            readOnly = true,
+                            trailingIcon = {
+                                androidx.compose.material3.IconButton(onClick = { expanded = true }) {
+                                    androidx.compose.material3.Icon(
+                                        imageVector = androidx.compose.material.icons.Icons.Default.ArrowDropDown,
+                                        contentDescription = "Select LoRA"
+                                    )
+                                }
+                            },
+                            modifier = Modifier.fillMaxWidth()
+                        )
+
+                        androidx.compose.material3.DropdownMenu(
+                            expanded = expanded,
+                            onDismissRequest = { expanded = false },
+                            modifier = Modifier.fillMaxWidth(0.9f)
+                        ) {
+                            loras.forEach { lora ->
+                                androidx.compose.material3.DropdownMenuItem(
+                                    text = { Text(lora.replace("\\", "/")) },
+                                    onClick = {
+                                        onValueChange(lora)
+                                        expanded = false
+                                    }
                                 )
                             }
-                        },
-                        modifier = Modifier.fillMaxWidth()
-                    )
-
-                    androidx.compose.material3.DropdownMenu(
-                        expanded = expanded,
-                        onDismissRequest = { expanded = false },
-                        modifier = Modifier.fillMaxWidth(0.9f)
-                    ) {
-                        loras.forEach { lora ->
-                            androidx.compose.material3.DropdownMenuItem(
-                                text = { Text(lora.replace("\\", "/")) },
-                                onClick = {
-                                    onValueChange(lora)
-                                    expanded = false
-                                }
-                            )
                         }
+                    }
+                    
+                    // Remove button
+                    androidx.compose.material3.IconButton(
+                        onClick = { onValueChange("None") }
+                    ) {
+                        androidx.compose.material3.Icon(
+                            imageVector = androidx.compose.material.icons.Icons.Default.Close,
+                            contentDescription = "Remove LoRA",
+                            tint = MaterialTheme.colorScheme.error
+                        )
                     }
                 }
             }
