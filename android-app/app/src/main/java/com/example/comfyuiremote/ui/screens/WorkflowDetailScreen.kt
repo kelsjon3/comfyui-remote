@@ -87,12 +87,49 @@ fun WorkflowDetailScreen(
                 expandedNodes[node.id] = false
             }
             
-            node.inputs.forEach { input ->
+            node.inputs
+                .filter { input ->
+                    // Filter out header and widget fields
+                    !input.name.contains("header", ignoreCase = true) &&
+                    !input.name.contains("widget", ignoreCase = true)
+                }
+                .forEach { input ->
                 if (input.default != null) {
                     val key = "${node.id}.${input.name}"
                     if (!inputValues.containsKey(key)) {
                         inputValues[key] = input.default
                     }
+                }
+            }
+        }
+    }
+
+    // Initialize checkpoint/LoRA inputs when lists are loaded
+    LaunchedEffect(checkpoints, loras, introspection) {
+        introspection?.nodes?.forEach { node ->
+            node.inputs
+                .filter { input ->
+                    !input.name.contains("header", ignoreCase = true) &&
+                    !input.name.contains("widget", ignoreCase = true)
+                }
+                .forEach { input ->
+                val key = "${node.id}.${input.name}"
+                
+                // Initialize checkpoint inputs
+                if ((input.name.contains("ckpt", ignoreCase = true) || 
+                     input.name.contains("checkpoint", ignoreCase = true)) &&
+                    checkpoints.isNotEmpty() &&
+                    !inputValues.containsKey(key)) {
+                    inputValues[key] = checkpoints.first()
+                }
+                
+                // Initialize LoRA inputs
+                if (input.name.contains("lora", ignoreCase = true) &&
+                    !input.name.contains("weight", ignoreCase = true) &&
+                    !input.name.contains("strength", ignoreCase = true) &&
+                    loras.isNotEmpty() &&
+                    !inputValues.containsKey(key)) {
+                    inputValues[key] = loras.first()
                 }
             }
         }
